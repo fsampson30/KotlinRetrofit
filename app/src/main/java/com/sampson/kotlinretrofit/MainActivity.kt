@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import com.google.gson.GsonBuilder
 import com.robinhood.spark.SparkView
@@ -20,8 +21,10 @@ private const val BASE_URL = "https://covidtracking.com/api/v1/"
 private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var adapter: CovidSparkAdapter
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
     private lateinit var nationalDailyData: List<CovidData>
+
     private lateinit var tvMetric : TextView
     private lateinit var tvDate : TextView
     private lateinit var rdButtonPositive:  RadioButton
@@ -31,6 +34,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rdButtonMonth: RadioButton
     private lateinit var rdButtonMax: RadioButton
     private lateinit var sparkView: SparkView
+
+    private lateinit var rgTimeSelection: RadioGroup
+    private lateinit var rgMetricSelection: RadioGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +51,8 @@ class MainActivity : AppCompatActivity() {
         rdButtonMonth = findViewById(R.id.rbButtonMonth)
         rdButtonMax = findViewById(R.id.rdButtonMax)
         sparkView = findViewById(R.id.graphSpark)
+        rgTimeSelection  = findViewById(R.id.rgTimeSelection)
+        rgMetricSelection = findViewById(R.id.rgCasesSelection)
 
         val gson = GsonBuilder().setDateFormat(getString(R.string.date_format)).create()
         val retrofit = Retrofit.Builder()
@@ -63,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "Did not receive a valid response body")
                     return
                 }
+                setupEventListeners()
                 nationalDailyData = nationalData.reversed()
                 Log.i(TAG, "Update graph with national data")
                 updateDisplayWithData(nationalDailyData)
@@ -90,15 +99,41 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "onFailure $t")
             }
         })
+    }
 
+    private fun setupEventListeners() {
+        sparkView.isScrubEnabled = true
+        sparkView.setScrubListener { itemData ->
+            if (itemData is CovidData) {
+                updateInfoForDate(itemData)
+            }
+        }
+        rgTimeSelection.setOnCheckedChangeListener { _, checkedId ->
+            adapter.daysAgo = when (checkedId) {
+                R.id.rdButtonWeek -> TimeScale.WEEK
+                R.id.rbButtonMonth -> TimeScale.MONTH
+                else -> TimeScale.MAX
+            }
+            adapter.notifyDataSetChanged()
+        }
 
+        rgMetricSelection.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.rbButtonPositive -> updateDisplayMetric(Metric.POSITIVE)
+                R.id.rdButtonNegative -> updateDisplayMetric(Metric.NEGATIVE)
+                R.id.rdButtonDeath -> updateDisplayMetric(Metric.DEATH)
+            }
+            adapter.notifyDataSetChanged()
+        }
+    }
 
-
-
+    private fun updateDisplayMetric(metric: Metric) {
+        adapter.metric = metric
+        adapter.notifyDataSetChanged()
     }
 
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
-        val adapter = CovidSparkAdapter(dailyData)
+        adapter = CovidSparkAdapter(dailyData)
         sparkView.adapter = adapter
         rdButtonPositive.isChecked = true
         rdButtonMax.isChecked = true
@@ -106,7 +141,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateInfoForDate(covidData: CovidData) {
-        tvMetric.text = NumberFormat.getInstance().format(covidData.positiveIncrease)
+        val numCases = when (adapter.metric) {
+            Metric.POSITIVE -> covidData.positiveIncrease
+            Metric.NEGATIVE -> covidData.negativeIncrease
+            Metric.DEATH -> covidData.deathIncrease
+        }
+        tvMetric.text = NumberFormat.getInstance().format(numCases)
         val outputDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
         tvDate.text = outputDateFormat.format(covidData.dateChecked)
 

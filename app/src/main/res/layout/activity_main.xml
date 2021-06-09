@@ -55,7 +55,8 @@
         app:layout_constraintBottom_toTopOf="@+id/rgTimeSelection"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rgCasesSelection" />
+        app:layout_constraintTop_toBottomOf="@id/rgCasesSelection"
+        android:layerType="software"/>
 
     <RadioGroup
         android:id="@+id/rgTimeSelection"
