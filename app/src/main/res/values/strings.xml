@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">KotlinRetrofit</string>
+    <string name="date_format">yyyy-MM-dd\'T\'HH:mm:ss</string>
+    <string name="state">State</string>
+    <string name="negative">Negative</string>
+    <string name="positive">Positive</string>
+    <string name="death">Death</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="max">Max</string>
+    <string name="date_mask">May 30, 2020</string>
+</resources>
