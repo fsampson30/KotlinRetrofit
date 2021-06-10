@@ -9,6 +9,8 @@ import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import com.google.gson.GsonBuilder
 import com.robinhood.spark.SparkView
+import com.robinhood.ticker.TickerUtils
+import com.robinhood.ticker.TickerView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -29,7 +31,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
     private lateinit var nationalDailyData: List<CovidData>
 
-    private lateinit var tvMetric : TextView
+    private lateinit var tvMetric : TickerView
     private lateinit var tvDate : TextView
     private lateinit var rdButtonPositive:  RadioButton
     private lateinit var rdButtonNegative: RadioButton
@@ -120,6 +122,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun setupEventListeners() {
+
+        tvMetric.setCharacterLists(TickerUtils.provideNumberList())
+
         sparkView.isScrubEnabled = true
         sparkView.setScrubListener { itemData ->
             if (itemData is CovidData) {

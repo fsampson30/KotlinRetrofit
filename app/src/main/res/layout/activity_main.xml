@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ClRoot"
+    android:theme="@style/Theme.KotlinRetrofit"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -25,6 +26,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
+        android:spinnerMode="dialog"
         app:layout_constraintBottom_toBottomOf="@+id/tvSelectState"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/tvSelectState"
@@ -45,25 +47,31 @@
             android:id="@+id/rdButtonNegative"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/negative" />
+            android:text="@string/negative"
+            style="@style/CustomRadioButton"/>
 
         <RadioButton
             android:id="@+id/rbButtonPositive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/positive" />
+            android:text="@string/positive"
+            style="@style/CustomRadioButton"/>
 
         <RadioButton
             android:id="@+id/rdButtonDeath"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/death" />
+            android:text="@string/death"
+            style="@style/CustomRadioButton"/>
     </RadioGroup>
 
     <com.robinhood.spark.SparkView
         android:id="@+id/graphSpark"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:background="@color/colorBackgroundShade"
         app:layout_constraintBottom_toTopOf="@+id/rgTimeSelection"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,6 +84,9 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:paddingBottom="8dp"
+        android:background="@color/colorBackgroundShade"
         app:layout_constraintBottom_toTopOf="@+id/tvMetricLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -84,19 +95,22 @@
             android:id="@+id/rdButtonWeek"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/week" />
+            android:text="@string/week"
+            style="@style/CustomRadioButton"/>
 
         <RadioButton
             android:id="@+id/rbButtonMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/month" />
+            android:text="@string/month"
+            style="@style/CustomRadioButton"/>
 
         <RadioButton
             android:id="@+id/rdButtonMax"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/max" />
+            android:text="@string/max"
+            style="@style/CustomRadioButton"/>
     </RadioGroup>
 
     <TextView
@@ -110,7 +124,7 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:text="@string/date_mask" />
 
-    <TextView
+    <com.robinhood.ticker.TickerView
         android:id="@+id/tvMetricLabel"
         android:layout_width="0dp"
         android:layout_height="80dp"
