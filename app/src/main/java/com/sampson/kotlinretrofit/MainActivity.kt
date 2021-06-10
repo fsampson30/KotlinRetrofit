@@ -3,9 +3,10 @@ package com.sampson.kotlinretrofit
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.TextView
+import android.view.View
+import android.widget.*
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import com.google.gson.GsonBuilder
 import com.robinhood.spark.SparkView
 import retrofit2.Call
@@ -19,8 +20,11 @@ import java.util.*
 
 private const val BASE_URL = "https://covidtracking.com/api/v1/"
 private const val TAG = "MainActivity"
+private const val ALL_STATES: String = "All States"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
+
+    private lateinit var currentlyShownData: List<CovidData>
     private lateinit var adapter: CovidSparkAdapter
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
     private lateinit var nationalDailyData: List<CovidData>
@@ -34,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rdButtonMonth: RadioButton
     private lateinit var rdButtonMax: RadioButton
     private lateinit var sparkView: SparkView
+    private lateinit var spinner: Spinner
 
     private lateinit var rgTimeSelection: RadioGroup
     private lateinit var rgMetricSelection: RadioGroup
@@ -53,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         sparkView = findViewById(R.id.graphSpark)
         rgTimeSelection  = findViewById(R.id.rgTimeSelection)
         rgMetricSelection = findViewById(R.id.rgCasesSelection)
+        spinner = findViewById(R.id.spinnerEstates)
 
         val gson = GsonBuilder().setDateFormat(getString(R.string.date_format)).create()
         val retrofit = Retrofit.Builder()
@@ -94,11 +100,23 @@ class MainActivity : AppCompatActivity() {
                 }
                 perStateDailyData = statesData.reversed().groupBy { it.state }
                 Log.i(TAG, "Update spinner with state names")
+                updateSpinnerWithStateData(perStateDailyData.keys)
             }
             override fun onFailure(call: Call<List<CovidData>>, t: Throwable) {
                 Log.e(TAG, "onFailure $t")
             }
         })
+    }
+
+    private fun updateSpinnerWithStateData(stateNames: Set<String>) {
+        val stateAbbreviationList = stateNames.toMutableList()
+        stateAbbreviationList.sort()
+        stateAbbreviationList.add(0, ALL_STATES)
+
+        val arrayAdapter =
+            ArrayAdapter(this, android.R.layout.simple_list_item_1, stateAbbreviationList)
+        spinner.adapter = arrayAdapter
+        spinner.onItemSelectedListener = this
     }
 
     private fun setupEventListeners() {
@@ -128,16 +146,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDisplayMetric(metric: Metric) {
+        val colorRes = when  (metric) {
+            Metric.NEGATIVE -> ContextCompat.getColor(this,R.color.colorNegative)
+            Metric.POSITIVE -> ContextCompat.getColor(this, R.color.colorPositive)
+            Metric.DEATH -> ContextCompat.getColor(this,R.color.colorDeath)
+        }
+
+        sparkView.lineColor = colorRes
+        tvMetric.setTextColor(colorRes)
+
         adapter.metric = metric
         adapter.notifyDataSetChanged()
+
+        updateInfoForDate(currentlyShownData.last())
     }
 
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
+        currentlyShownData = dailyData
         adapter = CovidSparkAdapter(dailyData)
         sparkView.adapter = adapter
         rdButtonPositive.isChecked = true
         rdButtonMax.isChecked = true
-        updateInfoForDate(dailyData.last())
+        updateDisplayMetric(Metric.POSITIVE)
     }
 
     private fun updateInfoForDate(covidData: CovidData) {
@@ -150,5 +180,15 @@ class MainActivity : AppCompatActivity() {
         val outputDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
         tvDate.text = outputDateFormat.format(covidData.dateChecked)
 
+    }
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        val selectedState = parent?.getItemAtPosition(position) as String
+        val selectedData = perStateDailyData[selectedState] ?: nationalDailyData
+        updateDisplayWithData(selectedData)
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+        Log.i(TAG,"Nothing Selected")
     }
 }
